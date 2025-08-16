@@ -74,20 +74,22 @@
 
                 <label class="field">
                     <span>What did you do</span>
-                    <select id="tkAction" name="action" required>
-                        <option value="" disabled selected>Select an action…</option>
-                        <option>Resolved</option>
-                        <option>#1</option>
-                        <option>#2</option>
-                        <option>Reassigned to another team</option>
-                        <option>Pending Update</option>
-                        <option>Awaiting vendor/third-party</option>
-                        <option>With DTL/TL/SDM</option>
-                        <option>Out Of Office</option>
-                        <option value="__other">Other…</option>
-                    </select>
-
-                    <!-- hidden custom input shown only when "Other…" is chosen -->
+                    <div class="select-wrap">
+                        <select id="tkAction" name="action" required>
+                            <option value="" disabled selected>Select an action…</option>
+                            <option>Called user</option>
+                            <option>Emailed user</option>
+                            <option>Remote session</option>
+                            <option>Reassigned to another team</option>
+                            <option>Escalated</option>
+                            <option>Awaiting user response</option>
+                            <option>Awaiting vendor/third-party</option>
+                            <option>Resolved</option>
+                            <option>Follow-up scheduled</option>
+                            <option>Documentation updated</option>
+                            <option value="__other">Other…</option>
+                        </select>
+                    </div>
                     <input id="tkActionOther" class="hidden" placeholder="Describe the action…" />
                 </label>
 
@@ -96,8 +98,18 @@
                     <textarea id="tkDesc" name="description" placeholder="Add any useful details…" rows="4"></textarea>
                 </label>
 
+                <!-- Read-only time + update checkbox -->
+                <div class="field">
+                    <span>Logged time</span>
+                    <div id="tkTimeDisplay" class="pill" style="display:inline-block"></div>
+                    <label class="pill" style="margin-left:8px">
+                        <input id="tkBumpTime" type="checkbox" style="margin-right:6px"> Update time to now
+                    </label>
+                </div>
+
                 <div class="actions">
-                    <button class="btn" type="submit">Submit</button>
+                    <button id="ticketSubmitBtn" class="btn" type="submit">Submit</button>
+                    <button id="ticketDeleteBtn" class="btn ghost" type="button" style="margin-left:auto;display:none">Delete</button>
                     <button class="btn ghost" type="button" data-close>Cancel</button>
                 </div>
                 <p id="ticketStatus" class="status" aria-live="polite"></p>
