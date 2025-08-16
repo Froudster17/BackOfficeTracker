@@ -16,10 +16,6 @@ namespace BackOfficeTracker
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddDbContext<AppDbContext>(opt =>
-                opt.UseSqlite(builder.Configuration.GetConnectionString("Default")
-                ?? "Data Source=tracker.db"));
-
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
