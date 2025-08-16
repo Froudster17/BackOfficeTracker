@@ -9,10 +9,12 @@ namespace BackOfficeTracker.Controllers
     public class AuthController : ControllerBase
     {
 
-        private static readonly List<Agent> Agents = new()
+        private readonly List<Agent> agents;
+
+        public AuthController(List<Agent> agents)
         {
-            new Agent { Id = 1, Email = "test@example.com", Password = "password" }
-        };
+            this.agents = agents;
+        }
 
         public record LoginRequest(String Email, string Password);
         public record LoginResponse(String Email, string Password);
@@ -23,7 +25,7 @@ namespace BackOfficeTracker.Controllers
             if (string.IsNullOrWhiteSpace(req.Email) || string.IsNullOrWhiteSpace(req.Password))
                 return BadRequest(new { error = "Email and password are required." });
 
-            var agent = Agents.FirstOrDefault(u =>
+            var agent = agents.FirstOrDefault(u =>
                 string.Equals(u.Email, req.Email, StringComparison.OrdinalIgnoreCase) &&
                 u.Password == req.Password);
 

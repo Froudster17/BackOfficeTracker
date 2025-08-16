@@ -1,6 +1,8 @@
 
 using BackOfficeTracker.Data;
+using BackOfficeTracker.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace BackOfficeTracker
 {
@@ -17,6 +19,9 @@ namespace BackOfficeTracker
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("TrackerDb"));
+
+            var agentsPath = Path.Combine(builder.Environment.ContentRootPath, "data", "agents.json");
+            var agents = JsonSerializer.Deserialize<List<Agent>>(File.ReadAllText(agentsPath)) ?? new List<Agent>();
 
             var app = builder.Build();
 
