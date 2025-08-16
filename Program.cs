@@ -1,4 +1,7 @@
 
+using BackOfficeTracker.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace BackOfficeTracker
 {
     public class Program
@@ -10,9 +13,12 @@ namespace BackOfficeTracker
             // Add services to the container.
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddDbContext<AppDbContext>(opt =>
+                opt.UseSqlite(builder.Configuration.GetConnectionString("Default")
+                ?? "Data Source=tracker.db"));
 
             var app = builder.Build();
 
@@ -22,6 +28,9 @@ namespace BackOfficeTracker
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
+
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
 
             app.UseHttpsRedirection();
 

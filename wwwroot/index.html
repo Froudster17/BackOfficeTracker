@@ -1,0 +1,46 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login — Back Office Tracker</title>
+    <link rel="stylesheet" href="/css/login.css" />
+</head>
+<body>
+    <div class="bg">
+        <div class="orb orb-a"></div>
+        <div class="orb orb-b"></div>
+        <div class="noise"></div>
+    </div>
+
+    <main class="shell" aria-labelledby="title">
+        <form id="loginForm" class="card" autocomplete="on" novalidate>
+            <h1 id="title">Welcome back</h1>
+            <p class="subtitle">Sign in with your email to continue</p>
+
+            <label class="field">
+                <span>Email</span>
+                <input id="email" name="email" type="email" placeholder="you@company.com" required />
+            </label>
+
+            <label class="field">
+                <span>Password</span>
+                <div class="password-wrap">
+                    <input id="password" name="password" type="password" placeholder="••••••••" required minlength="3" />
+                    <button class="peek" type="button" aria-label="Show password" title="Show/Hide password">👁</button>
+                </div>
+            </label>
+
+            <button id="submitBtn" class="btn" type="submit">Log in</button>
+
+            <p id="status" class="status" role="status" aria-live="polite"></p>
+        </form>
+
+        <footer class="foot">
+            <small>Back Office Tracker • v0.1</small>
+        </footer>
+    </main>
+
+    <script src="/js/login.js" defer></script>
+</body>
+</html>

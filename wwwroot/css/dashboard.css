@@ -1,0 +1,319 @@
+﻿:root {
+    /* same palette as login page */
+    --bg: #0b1020;
+    --fg: #eaf0ff;
+    --muted: #a6b0d3;
+    --card: rgba(255,255,255,.08);
+    --card-b: rgba(255,255,255,.18);
+    --border: rgba(255,255,255,.20);
+    --accent: #7aa2ff;
+    --accent-2: #b86bff;
+    --radius: 22px;
+    --space: 16px;
+}
+
+* {
+    box-sizing: border-box
+}
+
+html, body {
+    height: 100%
+}
+
+body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    overflow: hidden;
+}
+
+/* animated backdrop reused */
+.bg {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none
+}
+
+.orb {
+    position: absolute;
+    filter: blur(50px);
+    opacity: .5;
+    border-radius: 50%
+}
+
+.orb-a {
+    width: 520px;
+    height: 520px;
+    left: -120px;
+    top: -80px;
+    background: radial-gradient(circle at 30% 30%, var(--accent), transparent 60%);
+    animation: drift 16s ease-in-out infinite alternate;
+}
+
+.orb-b {
+    width: 560px;
+    height: 560px;
+    right: -160px;
+    bottom: -140px;
+    background: radial-gradient(circle at 70% 60%, var(--accent-2), transparent 60%);
+    animation: drift 18s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes drift {
+    to {
+        transform: translate(40px,30px) scale(1.06);
+    }
+}
+
+.noise {
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence baseFrequency='0.6' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.04'/></svg>");
+    mix-blend-mode: overlay;
+}
+
+/* layout */
+.layout {
+    position: relative;
+    height: 100%;
+    display: grid;
+    grid-template-columns: 76px 1fr;
+    gap: 0
+}
+
+/* sidebar */
+.sidebar {
+    position: relative;
+    border-right: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+    backdrop-filter: blur(6px) saturate(120%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 14px 8px;
+    z-index: 2;
+}
+
+.brand {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    letter-spacing: .5px;
+    background: linear-gradient(180deg, var(--card), var(--card-b));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.side-nav {
+    margin-top: 10px;
+    display: grid;
+    gap: 10px
+}
+
+.nav-item {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    text-decoration: none;
+    color: var(--fg);
+    border: 1px solid transparent;
+    background: transparent;
+}
+
+    .nav-item:hover {
+        background: rgba(255,255,255,.06)
+    }
+
+    .nav-item.current {
+        border-color: var(--border);
+        background: rgba(255,255,255,.06)
+    }
+
+/* main column */
+.main {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 14px;
+    padding: 14px;
+    height: 100%;
+    overflow: hidden
+}
+
+/* top bar */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: linear-gradient(180deg, var(--card), var(--card-b));
+    backdrop-filter: blur(8px) saturate(120%);
+    box-shadow: 0 8px 20px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.left {
+    display: flex;
+    gap: 10px;
+    align-items: center
+}
+
+.right {
+    display: flex;
+    gap: 10px;
+    align-items: center
+}
+
+/* shared pill look */
+.pill {
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    background: rgba(255,255,255,.06);
+    color: var(--fg);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* buttons & inputs */
+.btn {
+    cursor: pointer;
+    font-weight: 600;
+    letter-spacing: .2px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    border-color: transparent;
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(122,162,255,.25)
+}
+
+    .btn:hover {
+        filter: brightness(1.05)
+    }
+
+    .btn:active {
+        transform: translateY(1px)
+    }
+
+.date-wrap {
+    display: inline-flex;
+    align-items: center
+}
+
+    .date-wrap input {
+        appearance: none;
+        -webkit-appearance: none;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--fg);
+        padding: 2px 2px;
+        font: inherit;
+        min-width: 180px;
+    }
+
+/* agent chip */
+.agent {
+    font-weight: 600;
+}
+
+/* card + list */
+.card {
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+    backdrop-filter: blur(8px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 8px 20px rgba(0,0,0,.25);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+}
+
+.list-wrap {
+    padding: 12px;
+}
+
+/* scrollable list area */
+.ticket-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow: auto;
+    min-height: 0;
+    height: 100%;
+}
+
+.ticket-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    margin: 10px 6px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(255,255,255,.06);
+}
+
+    .ticket-row:hover {
+        background: rgba(255,255,255,.10)
+    }
+
+.ticket-num {
+    font-weight: 700
+}
+
+.ticket-title {
+    flex: 1;
+    opacity: .95
+}
+
+.badge {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: .85rem;
+    color: var(--muted)
+}
+
+/* empty state */
+.empty {
+    display: grid;
+    place-items: center;
+    padding: 40px;
+    color: var(--muted)
+}
+
+.empty-blob {
+    font-size: 40px;
+    margin-bottom: 8px
+}
+
+.hidden {
+    display: none
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .orb {
+        animation: none
+    }
+}

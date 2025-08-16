@@ -1,0 +1,59 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard — Back Office Tracker</title>
+    <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+<body>
+    <!-- Reuse the animated background vibe -->
+    <div class="bg">
+        <div class="orb orb-a"></div>
+        <div class="orb orb-b"></div>
+        <div class="noise"></div>
+    </div>
+
+    <div class="layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">BOT</div>
+            <nav class="side-nav">
+                <a class="nav-item current" href="/dashboard.html" title="Dashboard">🏠</a>
+                <a class="nav-item" href="/reports.html" title="Reports">📊</a>
+                <a class="nav-item" href="/index.html" title="Logout">↩</a>
+            </nav>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main">
+            <!-- Top bar -->
+            <header class="topbar">
+                <div class="left">
+                    <button id="newTicketBtn" class="btn pill">＋ New Ticket</button>
+                    <label class="date-wrap pill">
+                        <input id="datePicker" type="date" />
+                    </label>
+                </div>
+                <div class="right">
+                    <div class="agent pill" id="agentChip">Agent</div>
+                </div>
+            </header>
+
+            <!-- Ticket list -->
+            <section class="list-wrap card">
+                <h2 class="sr-only">Your tickets</h2>
+                <ul id="ticketList" class="ticket-list" role="list">
+                    <!-- rows injected by JS -->
+                </ul>
+                <div id="emptyState" class="empty hidden">
+                    <div class="empty-blob">🗂️</div>
+                    <p>No tickets for this date.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/dashboard.js" defer></script>
+</body>
+</html>

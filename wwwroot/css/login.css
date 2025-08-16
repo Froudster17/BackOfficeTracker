@@ -1,0 +1,214 @@
+﻿:root {
+    --bg: #0b1020;
+    --fg: #eaf0ff;
+    --muted: #a6b0d3;
+    --card: rgba(255,255,255,.08);
+    --card-b: rgba(255,255,255,.18);
+    --border: rgba(255,255,255,.20);
+    --accent: #7aa2ff;
+    --accent-2: #b86bff;
+    --radius: 22px;
+    --space: 16px;
+}
+
+/* Reset-ish */
+* {
+    box-sizing: border-box
+}
+
+html, body {
+    height: 100%
+}
+
+body {
+    margin: 0;
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    overflow: hidden; /* full-screen scene */
+}
+
+/* Fancy animated backdrop */
+.bg {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none
+}
+
+.orb {
+    position: absolute;
+    filter: blur(50px);
+    opacity: .5;
+    border-radius: 50%
+}
+
+.orb-a {
+    width: 520px;
+    height: 520px;
+    left: -120px;
+    top: -80px;
+    background: radial-gradient(circle at 30% 30%, var(--accent), transparent 60%);
+    animation: drift 16s ease-in-out infinite alternate;
+}
+
+.orb-b {
+    width: 560px;
+    height: 560px;
+    right: -160px;
+    bottom: -140px;
+    background: radial-gradient(circle at 70% 60%, var(--accent-2), transparent 60%);
+    animation: drift 18s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes drift {
+    to {
+        transform: translate(40px, 30px) scale(1.06);
+    }
+}
+
+.noise {
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence baseFrequency='0.6' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.04'/></svg>");
+    mix-blend-mode: overlay;
+}
+
+/* Centering shell */
+.shell {
+    position: relative;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    padding: 32px 16px;
+}
+
+/* Glass card */
+.card {
+    width: min(92vw, 420px);
+    padding: clamp(20px, 3vw, 28px);
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, var(--card), var(--card-b));
+    border: 1px solid var(--border);
+    box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter: blur(10px) saturate(120%);
+}
+
+h1 {
+    margin: 0 0 6px;
+    font-size: 1.5rem;
+    letter-spacing: .2px
+}
+
+.subtitle {
+    margin: 0 0 18px;
+    color: var(--muted)
+}
+
+.field {
+    display: block;
+    margin: 12px 0 14px
+}
+
+    .field > span {
+        display: block;
+        font-size: .9rem;
+        color: var(--muted);
+        margin-bottom: 6px
+    }
+
+input {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(0,0,0,.25);
+    color: var(--fg);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 14px;
+    outline: none;
+}
+
+    input::placeholder {
+        color: #aab3d6
+    }
+
+    input:focus {
+        border-color: #a7baff;
+        box-shadow: 0 0 0 3px rgba(122,162,255,.25)
+    }
+
+.password-wrap {
+    position: relative
+}
+
+.peek {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: .75;
+    padding: 6px;
+    border-radius: 8px;
+}
+
+    .peek:hover {
+        opacity: 1;
+        background: rgba(255,255,255,.08)
+    }
+
+.btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: white;
+    font-weight: 600;
+    letter-spacing: .2px;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(122,162,255,.25), 0 2px 0 rgba(255,255,255,.15) inset;
+}
+
+    .btn:hover {
+        filter: brightness(1.04)
+    }
+
+    .btn:active {
+        transform: translateY(1px)
+    }
+
+.status {
+    min-height: 1.2em;
+    margin: 10px 2px 0;
+    color: var(--muted);
+}
+
+    .status.error {
+        color: #ffb4c3
+    }
+
+    .status.success {
+        color: #b8ffcb
+    }
+
+.foot {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: #9aa6d1;
+    font-size: .85rem;
+    pointer-events: none
+}
+
+/* Respect reduced motion users */
+@media (prefers-reduced-motion: reduce) {
+    .orb, .noise {
+        animation: none
+    }
+}
