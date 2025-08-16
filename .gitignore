@@ -401,3 +401,6 @@ FodyWeavers.xsd
 *.sln.iml
 Data/users.json
 Data/agents.json
+Data/backoffice.db-wal
+Data/backoffice.db-shm
+Data/backoffice.db

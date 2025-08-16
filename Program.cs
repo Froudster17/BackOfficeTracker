@@ -17,12 +17,15 @@ namespace BackOfficeTracker
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            // InMemory DB (for now)
-            builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("TrackerDb"));
+            // ---------- SQLite instead of InMemory ----------
+            var dataDir = Path.Combine(builder.Environment.ContentRootPath, "data");
+            Directory.CreateDirectory(dataDir); // ensure folder exists
+            var dbPath = Path.Combine(dataDir, "backoffice.db");
+
+            builder.Services.AddDbContext<AppDbContext>(opt =>
+                opt.UseSqlite($"Data Source={dbPath}"));
 
             // ---------- Load agents.json ----------
-            // 1) allow override via env var (e.g., in Docker compose)
-            // 2) default to <contentroot>/data/agents.json
             var envPath = Environment.GetEnvironmentVariable("AGENTS_JSON_PATH");
             var defaultPath = Path.Combine(builder.Environment.ContentRootPath, "data", "agents.json");
             var agentsPath = !string.IsNullOrWhiteSpace(envPath) && File.Exists(envPath)
@@ -45,6 +48,13 @@ namespace BackOfficeTracker
             builder.Services.AddSingleton(agents); // resolves as List<Agent>
 
             var app = builder.Build();
+
+            // ---- Create DB file if it doesn’t exist ----
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                db.Database.EnsureCreated(); // <- creates file + tables if missing, else no-op
+            }
 
             if (app.Environment.IsDevelopment())
             {
