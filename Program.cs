@@ -16,6 +16,8 @@ namespace BackOfficeTracker
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("TrackerDb"));
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
@@ -36,6 +38,7 @@ namespace BackOfficeTracker
             app.MapControllers();
 
             app.Run();
+
         }
     }
 }
