@@ -12,6 +12,7 @@ const dateInput = qs("#datePicker");
 const list = qs("#ticketList");
 const empty = qs("#emptyState");
 const newBtn = qs("#newTicketBtn");
+const newRequestBtn = qs("#newRequestBtn"); // NEW
 
 agentChip.textContent = me.displayName || me.email || "Me";
 dateInput.value = todayLocalYMD();
@@ -55,20 +56,61 @@ const submitBtn = qs("#ticketSubmitBtn");
 const deleteBtn = qs("#ticketDeleteBtn");
 const titleEl = qs("#ticketTitle");
 
-const defaultDescriptions = {
-    "Resolved": "Issue resolved with known fix or confirmed with the user.",
-    "#1": "Called User, Left VM & Comment",
-    "#2": "Called User, Left VM & Comment",
-    "Pending Update": "",
-    "With DTL/TL/SDM": "Ticket is with Duty Team Lead / Team Lead / SDM for review.",
-    "Incorrect Assignment Group": "Ticket re-assigned to correct team.",
-    "Awaiting vendor/third-party": "Waiting for vendor/third-party response.",
-    "__other": "" // leave blank for Other
+/* ---------- Modes & option/description sets ---------- */
+const MODES = { TICKET: "ticket", REQUEST: "request" };
+let currentMode = MODES.TICKET;
+
+// Actions shown for each mode
+const ACTION_OPTIONS = {
+    [MODES.TICKET]: [
+        "Resolved",
+        "#1",
+        "#2",
+        "Pending Update",
+        "With DTL/TL/SDM",
+        "Incorrect Assignment Group",
+        "Awaiting vendor/third-party"
+    ],
+    [MODES.REQUEST]: [
+        "New Access Request",
+        "Software Install",
+        "Hardware Request",
+        "Permission Change",
+        "General Service Request",
+        "Follow-up Scheduled"
+    ]
+};
+
+// Default descriptions per action per mode
+const DEFAULT_DESCRIPTIONS = {
+    [MODES.TICKET]: {
+        "Resolved": "Issue resolved with known fix or confirmed with the user.",
+        "#1": "Called User, Left VM & Comment",
+        "#2": "Called User, Left VM & Comment",
+        "Pending Update": "",
+        "With DTL/TL/SDM": "Ticket is with Duty Team Lead / Team Lead / SDM for review.",
+        "Incorrect Assignment Group": "Ticket re-assigned to correct team.",
+        "Awaiting vendor/third-party": "Waiting for vendor/third-party response.",
+        "__other": ""
+    },
+    [MODES.REQUEST]: {
+        "New Access Request": "Access request submitted with required details.",
+        "Software Install": "Software installation requested and pending approval.",
+        "Hardware Request": "Hardware request logged and routed to procurement.",
+        "Permission Change": "Permissions change requested and awaiting approval.",
+        "General Service Request": "Service request logged for fulfilment.",
+        "Follow-up Scheduled": "Follow-up scheduled with the requester.",
+        "__other": ""
+    }
 };
 
 let editingId = null; // null=create, number=edit
 
-newBtn.addEventListener("click", openModalForCreate);
+newBtn.addEventListener("click", () => openModalForCreate(MODES.TICKET));
+if (newRequestBtn) {
+    newRequestBtn.addEventListener("click", () => openModalForCreate(MODES.REQUEST));
+}
+
 list.addEventListener("click", (e) => {
     const li = e.target.closest(".ticket-row");
     if (!li) return;
@@ -82,6 +124,7 @@ document.addEventListener("keydown", (e) => {
     if (!modal.classList.contains("hidden") && e.key === "Escape") closeModal();
 });
 
+/* When the action changes, toggle "__other" input and auto-fill description */
 tkAction.addEventListener("change", () => {
     if (tkAction.value === "__other") {
         tkActionOther.classList.remove("hidden");
@@ -91,10 +134,9 @@ tkAction.addEventListener("change", () => {
         tkActionOther.value = "";
     }
 
-    // Auto-fill description if it’s empty or matches a previous default
-    const defText = defaultDescriptions[tkAction.value];
+    const defText = DEFAULT_DESCRIPTIONS[currentMode][tkAction.value];
     if (defText !== undefined) {
-        if (!tkDesc.value || Object.values(defaultDescriptions).includes(tkDesc.value)) {
+        if (!tkDesc.value || isCurrentValueDefaultForAnyMode(tkDesc.value)) {
             tkDesc.value = defText;
         }
     }
@@ -173,38 +215,78 @@ async function onDelete() {
 /*******************************
  *  Modal helpers
  *******************************/
-function openModalForCreate() {
+function openModalForCreate(mode = MODES.TICKET) {
+    currentMode = mode;
     editingId = null;
-    titleEl.textContent = "New Ticket Action";
+    titleEl.textContent = mode === MODES.REQUEST ? "New Request" : "New Ticket Action";
     submitBtn.textContent = "Submit";
     deleteBtn.style.display = "none";
     form.reset();
     tkActionOther.classList.add("hidden");
+
+    // Build action options for this mode and set default desc
+    populateActionOptions(currentMode);
+
     updateTimeDisplay(new Date()); // show now in the read-only pill
     showModal();
 }
 
 function openModalForEdit(t) {
+    const actionVal = t.action || "";
+    const isRequestAction = ACTION_OPTIONS[MODES.REQUEST].includes(actionVal);
+    currentMode = isRequestAction ? MODES.REQUEST : MODES.TICKET;
+
     editingId = t.id;
-    titleEl.textContent = "Edit Ticket Action";
+    titleEl.textContent = isRequestAction ? "Edit Request" : "Edit Ticket Action";
     submitBtn.textContent = "Save changes";
     deleteBtn.style.display = "inline-flex";
 
     tkNumber.value = t.ticketNumber || "";
 
-    if (hasActionOption(t.action)) {
-        tkAction.value = t.action;
-        tkActionOther.classList.add("hidden");
-        tkActionOther.value = "";
-    } else {
-        tkAction.value = "__other";
-        tkActionOther.classList.remove("hidden");
-        tkActionOther.value = t.action || "";
-    }
+    // Rebuild options for this mode and try to select existing action/custom
+    populateActionOptions(currentMode, actionVal);
 
     tkDesc.value = t.description || "";
     updateTimeDisplay(parseIsoAsLocal(t.time)); // show existing time
     showModal();
+}
+
+function populateActionOptions(mode, selectedValue = "") {
+    const opts = ACTION_OPTIONS[mode] || [];
+    // rebuild <select>
+    tkAction.innerHTML =
+        `<option value="" disabled ${selectedValue ? "" : "selected"}>Select an action…</option>` +
+        opts.map(v => `<option>${esc(v)}</option>`).join("") +
+        `<option value="__other">Other…</option>`;
+
+    // keep/reflect selection
+    if (selectedValue) {
+        if (opts.includes(selectedValue)) {
+            tkAction.value = selectedValue;
+            tkActionOther.classList.add("hidden");
+            tkActionOther.value = "";
+        } else {
+            tkAction.value = "__other";
+            tkActionOther.classList.remove("hidden");
+            tkActionOther.value = selectedValue;
+        }
+    } else {
+        if (opts.length) tkAction.value = opts[0];
+    }
+
+    // set default description when switching modes if empty or still defaulty
+    const defText = DEFAULT_DESCRIPTIONS[mode][tkAction.value] ?? "";
+    if (!tkDesc.value || isCurrentValueDefaultForAnyMode(tkDesc.value)) {
+        tkDesc.value = defText;
+    }
+}
+
+function isCurrentValueDefaultForAnyMode(val) {
+    const allDefaults = {
+        ...DEFAULT_DESCRIPTIONS[MODES.TICKET],
+        ...DEFAULT_DESCRIPTIONS[MODES.REQUEST]
+    };
+    return Object.values(allDefaults).includes(val);
 }
 
 function showModal() {
