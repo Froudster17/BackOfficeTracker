@@ -21,7 +21,7 @@ namespace BackOfficeTracker.Controllers
 
         // ------------------ DTOs ------------------
         public record CreateTicketDto(string TicketNumber, int AgentId, string? Action, string? Description);
-        public record UpdateTicketDto(string TicketNumber, string? Action, string? Description, bool UpdateTimeNow);
+        public record UpdateTicketDto(string TicketNumber, string? Action, string? Description);
         public record TicketDto(int Id, string TicketNumber, string? Action, string? Description, DateTime Time);
 
         // ------------------ Helpers ------------------
@@ -133,8 +133,7 @@ namespace BackOfficeTracker.Controllers
 
             t.TicketNumber = dto.TicketNumber.Trim();
             t.Action = dto.Action?.Trim();
-            t.Description = dto.Description?.Trim();
-            if (dto.UpdateTimeNow) t.Time = DateTime.Now;
+            t.Description = dto.Description?.Trim();;
 
             await _db.SaveChangesAsync();
             return NoContent();

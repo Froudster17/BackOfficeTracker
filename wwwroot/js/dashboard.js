@@ -3,7 +3,6 @@
  *******************************/
 const me = getAuthUser();
 if (!me) {
-    // no auth -> back to login
     window.location.href = "/index.html";
     throw new Error("Not authenticated");
 }
@@ -15,17 +14,17 @@ const empty = qs("#emptyState");
 const newBtn = qs("#newTicketBtn");
 
 agentChip.textContent = me.displayName || me.email || "Me";
-dateInput.value = todayLocalYMD(); // default = today
+dateInput.value = todayLocalYMD();
 
 /*******************************
  *  Copy-to-Excel: button + status (injected next to agent name)
  *******************************/
-const rightTopbar = agentChip.parentElement; // .right container
+const rightTopbar = agentChip.parentElement;
 const copyBtn = document.createElement("button");
 copyBtn.id = "copyTicketsBtn";
 copyBtn.type = "button";
 copyBtn.className = "btn ghost";
-copyBtn.style.padding = "6px 10px";         // tiny style so it fits the chip nicely
+copyBtn.style.padding = "6px 10px";
 copyBtn.style.borderRadius = "10px";
 copyBtn.style.fontSize = ".95rem";
 copyBtn.title = "Copy tickets to clipboard";
@@ -51,11 +50,21 @@ const tkNumber = qs("#tkNumber");
 const tkAction = qs("#tkAction");
 const tkActionOther = qs("#tkActionOther");
 const tkDesc = qs("#tkDesc");
-const tkTimeDisplay = qs("#tkTimeDisplay");
-const tkBumpTime = qs("#tkBumpTime");
+const tkTimeDisplay = qs("#tkTimeDisplay");  // read-only pill
 const submitBtn = qs("#ticketSubmitBtn");
 const deleteBtn = qs("#ticketDeleteBtn");
 const titleEl = qs("#ticketTitle");
+
+const defaultDescriptions = {
+    "Resolved": "Issue resolved with known fix or confirmed with the user.",
+    "#1": "Called User, Left VM & Comment",
+    "#2": "Called User, Left VM & Comment",
+    "Pending Update": "",
+    "With DTL/TL/SDM": "Ticket is with Duty Team Lead / Team Lead / SDM for review.",
+    "Incorrect Assignment Group": "Ticket re-assigned to correct team.",
+    "Awaiting vendor/third-party": "Waiting for vendor/third-party response.",
+    "__other": "" // leave blank for Other
+};
 
 let editingId = null; // null=create, number=edit
 
@@ -80,6 +89,14 @@ tkAction.addEventListener("change", () => {
     } else {
         tkActionOther.classList.add("hidden");
         tkActionOther.value = "";
+    }
+
+    // Auto-fill description if it’s empty or matches a previous default
+    const defText = defaultDescriptions[tkAction.value];
+    if (defText !== undefined) {
+        if (!tkDesc.value || Object.values(defaultDescriptions).includes(tkDesc.value)) {
+            tkDesc.value = defText;
+        }
     }
 });
 
@@ -113,31 +130,21 @@ async function onSubmit(e) {
 
     try {
         if (editingId === null) {
-            // CREATE
+            // CREATE (server sets time = now)
             await jsonFetch("/api/tickets", {
                 method: "POST",
                 body: { ticketNumber, agentId: me.userId, action, description }
             });
             showStatus("Saved!");
-            // After creation, ensure date is today so new item is visible
             const today = todayLocalYMD();
             if (dateInput.value !== today) dateInput.value = today;
         } else {
-            // EDIT
+            // EDIT (keep existing time)
             await jsonFetch(`/api/tickets/${editingId}`, {
                 method: "PUT",
-                body: {
-                    ticketNumber,
-                    action,
-                    description,
-                    updateTimeNow: !!tkBumpTime.checked
-                }
+                body: { ticketNumber, action, description }
             });
             showStatus("Changes saved!");
-            if (tkBumpTime.checked) {
-                const today = todayLocalYMD();
-                if (dateInput.value !== today) dateInput.value = today;
-            }
         }
         await loadTickets();
         setTimeout(closeModal, 150);
@@ -173,8 +180,7 @@ function openModalForCreate() {
     deleteBtn.style.display = "none";
     form.reset();
     tkActionOther.classList.add("hidden");
-    tkBumpTime.checked = true;
-    updateTimeDisplay(new Date());
+    updateTimeDisplay(new Date()); // show now in the read-only pill
     showModal();
 }
 
@@ -197,8 +203,7 @@ function openModalForEdit(t) {
     }
 
     tkDesc.value = t.description || "";
-    tkBumpTime.checked = false;
-    updateTimeDisplay(parseIsoAsLocal(t.time));
+    updateTimeDisplay(parseIsoAsLocal(t.time)); // show existing time
     showModal();
 }
 
@@ -253,7 +258,6 @@ function renderList(items) {
     }
     empty.classList.add("hidden");
 
-    // Expect each item to include: id, ticketNumber, action, description, time
     items
         .sort((a, b) => new Date(b.time) - new Date(a.time))
         .forEach(t => {
@@ -261,7 +265,7 @@ function renderList(items) {
             li.className = "ticket-row";
             li.dataset.id = t.id;
             li.dataset.action = t.action || "";
-            li._ticket = t; // keep original object for editing & export
+            li._ticket = t;
 
             li.innerHTML = `
         <span class="ticket-num">${esc(t.ticketNumber)}</span>
@@ -273,7 +277,7 @@ function renderList(items) {
 }
 
 /*******************************
- *  Copy-to-Excel (TSV) logic — robust for Excel paste
+ *  Copy-to-Excel (TSV) logic
  *******************************/
 copyBtn.addEventListener("click", copyVisibleTickets);
 
@@ -291,14 +295,7 @@ async function copyVisibleTickets() {
 
     const agentName = clean(agentChip?.textContent || "Agent");
 
-    // Header in your requested order
-    const header = [
-        "TicketID",
-        "Agent",
-        "What did you do",
-        "Description",
-        "Time"
-    ].join("\t");
+    const header = ["TicketID", "Agent", "What did you do", "Description", "Time"].join("\t");
 
     const lines = rows.map(li => {
         const t = li._ticket || {};
@@ -306,24 +303,22 @@ async function copyVisibleTickets() {
         const action = clean(t.action);
         const desc = clean(t.description);
         const timeHhMm = formatLocalTime(t.time);
-
         return [ticketId, agentName, action, desc, timeHhMm].join("\t");
     });
 
-    // Use CRLF for Excel friendliness
     const tsv = header + "\r\n" + lines.join("\r\n");
 
     try {
-        await (navigator.clipboard?.writeText
-            ? navigator.clipboard.writeText(tsv)
-            : (function () {
-                const ta = document.createElement("textarea");
-                ta.value = tsv;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand("copy");
-                ta.remove();
-            })());
+        if (navigator.clipboard?.writeText) {
+            await navigator.clipboard.writeText(tsv);
+        } else {
+            const ta = document.createElement("textarea");
+            ta.value = tsv;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            ta.remove();
+        }
         copyStatus.textContent = "Copied! Paste into Excel.";
     } catch (e) {
         console.error(e);
@@ -345,7 +340,11 @@ function getAuthUser() {
 }
 
 function qs(sel, root = document) { return root.querySelector(sel); }
-function esc(s) { return String(s ?? "").replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+function esc(s) {
+    return String(s ?? "").replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[m]));
+}
 
 function todayLocalYMD() {
     const d = new Date();
@@ -360,7 +359,6 @@ function formatLocalTime(iso) {
 }
 
 function parseIsoAsLocal(iso) {
-    // Works for "YYYY-MM-DDTHH:mm:ss[.fff][Z]" or without Z (both common from APIs)
     return new Date(iso);
 }
 
@@ -387,7 +385,6 @@ async function jsonFetch(url, { method = "GET", headers = {}, body } = {}) {
     const data = isJson ? await res.json().catch(() => undefined) : await res.text().catch(() => undefined);
 
     if (!res.ok) {
-        // Common API error shapes: { error: "..." } or validation arrays
         const errMsg = isJson
             ? (data?.error || data?.title || JSON.stringify(data))
             : (typeof data === "string" ? data : `HTTP ${res.status}`);
