@@ -563,6 +563,18 @@ body {
     }
 }
 
+.btn.small {
+    padding: 6px 10px;
+    border-radius: 10px;
+    font-size: .95rem;
+}
+
+.copy-status {
+    color: var(--muted);
+    font-size: .9rem;
+    min-width: 8ch;
+}
+
 @media (prefers-reduced-motion:reduce) {
     .orb {
         animation: none

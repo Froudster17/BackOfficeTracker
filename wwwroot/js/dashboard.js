@@ -18,6 +18,30 @@ agentChip.textContent = me.displayName || me.email || "Me";
 dateInput.value = todayLocalYMD(); // default = today
 
 /*******************************
+ *  Copy-to-Excel: button + status (injected next to agent name)
+ *******************************/
+const rightTopbar = agentChip.parentElement; // .right container
+const copyBtn = document.createElement("button");
+copyBtn.id = "copyTicketsBtn";
+copyBtn.type = "button";
+copyBtn.className = "btn ghost";
+copyBtn.style.padding = "6px 10px";         // tiny style so it fits the chip nicely
+copyBtn.style.borderRadius = "10px";
+copyBtn.style.fontSize = ".95rem";
+copyBtn.title = "Copy tickets to clipboard";
+copyBtn.textContent = "📋 Copy";
+
+const copyStatus = document.createElement("span");
+copyStatus.id = "copyStatus";
+copyStatus.style.marginLeft = "6px";
+copyStatus.style.color = "var(--muted)";
+copyStatus.style.fontSize = ".9rem";
+copyStatus.setAttribute("aria-live", "polite");
+
+rightTopbar.appendChild(copyBtn);
+rightTopbar.appendChild(copyStatus);
+
+/*******************************
  *  Modal wiring
  *******************************/
 const modal = qs("#ticketModal");
@@ -237,7 +261,7 @@ function renderList(items) {
             li.className = "ticket-row";
             li.dataset.id = t.id;
             li.dataset.action = t.action || "";
-            li._ticket = t; // keep original object for editing
+            li._ticket = t; // keep original object for editing & export
 
             li.innerHTML = `
         <span class="ticket-num">${esc(t.ticketNumber)}</span>
@@ -246,6 +270,67 @@ function renderList(items) {
       `;
             list.appendChild(li);
         });
+}
+
+/*******************************
+ *  Copy-to-Excel (TSV) logic — robust for Excel paste
+ *******************************/
+copyBtn.addEventListener("click", copyVisibleTickets);
+
+function clean(v) {
+    return (v ?? "").toString().replace(/\r|\n/g, " ").trim();
+}
+
+async function copyVisibleTickets() {
+    const rows = Array.from(list.querySelectorAll(".ticket-row"));
+    if (!rows.length) {
+        copyStatus.textContent = "No tickets.";
+        setTimeout(() => (copyStatus.textContent = ""), 3000);
+        return;
+    }
+
+    const agentName = clean(agentChip?.textContent || "Agent");
+
+    // Header in your requested order
+    const header = [
+        "TicketID",
+        "Agent",
+        "What did you do",
+        "Description",
+        "Time"
+    ].join("\t");
+
+    const lines = rows.map(li => {
+        const t = li._ticket || {};
+        const ticketId = clean(t.ticketNumber);
+        const action = clean(t.action);
+        const desc = clean(t.description);
+        const timeHhMm = formatLocalTime(t.time);
+
+        return [ticketId, agentName, action, desc, timeHhMm].join("\t");
+    });
+
+    // Use CRLF for Excel friendliness
+    const tsv = header + "\r\n" + lines.join("\r\n");
+
+    try {
+        await (navigator.clipboard?.writeText
+            ? navigator.clipboard.writeText(tsv)
+            : (function () {
+                const ta = document.createElement("textarea");
+                ta.value = tsv;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand("copy");
+                ta.remove();
+            })());
+        copyStatus.textContent = "Copied! Paste into Excel.";
+    } catch (e) {
+        console.error(e);
+        copyStatus.textContent = "Copy failed.";
+    } finally {
+        setTimeout(() => (copyStatus.textContent = ""), 4000);
+    }
 }
 
 /*******************************
