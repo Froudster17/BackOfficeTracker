@@ -72,12 +72,11 @@ const ACTION_OPTIONS = {
         "Awaiting vendor/third-party"
     ],
     [MODES.REQUEST]: [
-        "New Access Request",
-        "Software Install",
-        "Hardware Request",
-        "Permission Change",
-        "General Service Request",
-        "Follow-up Scheduled"
+        "Closed Complete",
+        "Closed Skipped",
+        "Pending",
+        "Work in progress",
+        "Assigned to",
     ]
 };
 
@@ -94,12 +93,11 @@ const DEFAULT_DESCRIPTIONS = {
         "__other": ""
     },
     [MODES.REQUEST]: {
-        "New Access Request": "Access request submitted with required details.",
-        "Software Install": "Software installation requested and pending approval.",
-        "Hardware Request": "Hardware request logged and routed to procurement.",
-        "Permission Change": "Permissions change requested and awaiting approval.",
-        "General Service Request": "Service request logged for fulfilment.",
-        "Follow-up Scheduled": "Follow-up scheduled with the requester.",
+        "Closed Complete": "",
+        "Closed Skipped": "",
+        "Pending": "",
+        "Work in progress": "",
+        "Assigned to": "",
         "__other": ""
     }
 };
