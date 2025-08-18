@@ -377,8 +377,12 @@ async function copyVisibleTickets() {
 
     const header = ["TicketID", "Agent", "What did you do", "Description", "Time"].join("\t");
 
-    const lines = rows.map(li => {
-        const t = li._ticket || {};
+    // extract the ticket objects and sort by time ASC (oldest → newest)
+    const sortedTickets = rows
+        .map(li => li._ticket || {})
+        .sort((a, b) => new Date(a.time) - new Date(b.time));
+
+    const lines = sortedTickets.map(t => {
         const ticketId = clean(t.ticketNumber);
         const action = clean(t.action);
         const desc = clean(t.description);
@@ -407,6 +411,7 @@ async function copyVisibleTickets() {
         setTimeout(() => (copyStatus.textContent = ""), 4000);
     }
 }
+
 
 /*******************************
  *  Helpers
